@@ -14,10 +14,7 @@ export default defineService({
   Mutation: {
     translate: async (base64Code: string) => {
       try {
-        // Add translation job to the queue
-        const job = await translationQueue.translate(base64Code);
-
-        return job;
+        return await translationQueue.translate(base64Code);
       } catch (error) {
         throw new TaskCreationError(error);
       }
