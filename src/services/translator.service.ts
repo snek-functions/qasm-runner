@@ -1,10 +1,12 @@
 import Queue, { Job } from "bull";
 import { TaskNotFoundError } from "../errors/translator.errors";
 
-type Q = Queue.Queue<{
+type JobData = {
   base64Qasm: string;
   translatedSvgList?: string[];
-}>;
+};
+
+type Q = Queue.Queue<JobData>;
 
 class Translator {
   private queue: Q;
@@ -34,7 +36,7 @@ class Translator {
     });
   }
 
-  private async jobToTask(job: Job) {
+  private async jobToTask(job: Job<JobData>) {
     return {
       id: job.id.toString(),
       status: () => job.getState(),
