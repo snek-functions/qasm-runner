@@ -26,17 +26,19 @@
     }
   },
   "dependencies": {
-    "@snek-at/function": "*",
-    "@snek-at/function-cli": "*",
-    "@snek-at/function-server": "*"
+    "@cronitio/pylon": "*",
+    "@cronitio/pylon-server": "*",
+    "bull": "^4.11.5"
   },
   "devDependencies": {
+    "@types/bull": "^4.10.0",
     "commitizen": "^4.2.5",
     "git-cz": "^4.9.0",
-    "snek-query": "^0.0.53"
+    "snek-query": "^0.0.104",
+    "@cronitio/pylon-cli": "*"
   },
   "scripts": {
-    "develop": "yarn sf develop",
-    "build": "yarn sf build"
+    "develop": "bun run pylon develop",
+    "build": "bun run pylon build"
   }
 }
