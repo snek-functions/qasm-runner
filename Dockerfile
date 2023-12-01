@@ -55,8 +55,6 @@ COPY --from=python /usr/local/lib/python3.9/site-packages /usr/local/lib/python3
 
 # Copy Python binary and other necessary files
 COPY --from=python /usr/local/bin/python /usr/local/bin/
-COPY --from=python /usr/local/include/python3.9 /usr/local/include/python3.9
-COPY --from=python /usr/local/share/python3.9 /usr/local/share/python3.9
 
 # Run the app
 USER bun
