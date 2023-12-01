@@ -38,6 +38,8 @@ COPY --from=install /temp/prod/node_modules node_modules
 COPY --from=prerelease /usr/src/pylon/.pylon/index.js .pylon/index.js
 COPY --from=prerelease /usr/src/pylon/package.json .
 
+COPY ./scripts /usr/src/pylon/scripts
+
 
 # Install python 3.9 in the release image
 RUN apt-get update && apt-get install -y --no-install-recommends \

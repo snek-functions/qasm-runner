@@ -4,16 +4,21 @@ import pyzx as zx
 from extraction.perceval import *
 import perceval as pcvl
 from qiskit import transpile, QuantumCircuit
-import sys, io
+import sys
+import io
 import matplotlib
 import json
+
+
 matplotlib.use('TkAgg')
+
 
 def exit(data, warnings, errors):
     output = {"data": data, "warnings": warnings, "errors": errors}
 
+
 if __name__ == '__main__':
-    output = {"data":[], "warnings":[], "errors":[]}
+    output = {"data": [], "warnings": [], "errors": []}
     data = []
     try:
         try:
@@ -26,7 +31,7 @@ if __name__ == '__main__':
             qc = QuantumCircuit.from_qasm_str(qasm)
             qc = transpile(qc, basis_gates=['cx', 'cz', 'rx', 'rz', 'h'])
         except Exception as e:
-            output["errors"].append(f'Error parsing QASM input: {e.message}' )
+            output["errors"].append(f'Error parsing QASM input: {e.message}')
             raise Exception("Exceptions")
 
         g = zx.Circuit.from_qasm(qc.qasm()).to_graph()
@@ -62,12 +67,14 @@ if __name__ == '__main__':
         })
 
         if len(g.vertices()) > 20:
-            output["warnings"].append('MBQC scheme too large to print a photonic circuit')
+            output["warnings"].append(
+                'MBQC scheme too large to print a photonic circuit')
             raise Exception("Warning")
 
         p.extract_clusters_from_graph_ghz_first()
         exp = p.create_setup(merge=True)
-        pcvl.pdisplay_to_file(exp, path="test.svg", output_format=pcvl.Format.HTML);
+        pcvl.pdisplay_to_file(exp, path="test.svg",
+                              output_format=pcvl.Format.HTML)
         f = open("test.svg", "r")
         output["data"].append({
             "name": "Optical Circuit",
@@ -79,4 +86,3 @@ if __name__ == '__main__':
         pass
     finally:
         print(json.dumps(output))
-
