@@ -1,0 +1,6 @@
+perceval-quandela==0.9.3
+qiskit==0.45.0
+pyzx==0.7.3
+matplotlib==3.8.2
+sympy==1.12
+numpy==1.26.2
