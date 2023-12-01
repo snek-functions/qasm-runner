@@ -30,18 +30,6 @@ ENV NODE_ENV=production
 # RUN bun test
 RUN bun run pylon build
 
-# Stage 2: Add Python to the image
-FROM python:3.9-slim AS python
-
-# Set working directory
-WORKDIR /usr/src/pylon
-
-# Copy Python-specific files
-COPY requirements.txt .
-
-# Install Python dependencies
-RUN pip install --no-cache-dir -r requirements.txt
-
 # Stage 3: Final stage
 FROM base AS release
 
@@ -50,15 +38,18 @@ COPY --from=install /temp/prod/node_modules node_modules
 COPY --from=prerelease /usr/src/pylon/.pylon/index.js .pylon/index.js
 COPY --from=prerelease /usr/src/pylon/package.json .
 
-# Copy Python dependencies
-COPY --from=python /usr/local/lib/python3.9/site-packages /usr/local/lib/python3.9/site-packages
 
 # Install python 3.9 in the release image
 RUN apt-get update && apt-get install -y --no-install-recommends \
     python3.9 \
+    python3-pip \
     python3-setuptools \
     python3-wheel \
     && rm -rf /var/lib/apt/lists/*
+
+# Install requirements.txt
+COPY requirements.txt .
+RUN pip3 install -r requirements.txt
 
 # Run the app
 USER bun
