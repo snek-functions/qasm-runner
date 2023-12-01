@@ -36,10 +36,6 @@ FROM python:3.9-slim AS python
 # Set working directory
 WORKDIR /usr/src/pylon
 
-# Create a virtual environment for Python
-RUN python -m venv /opt/venv
-# Make sure we use the virtualenv
-ENV PATH="/opt/venv/bin:$PATH"
 # Copy Python-specific files
 COPY requirements.txt .
 
@@ -55,9 +51,7 @@ COPY --from=prerelease /usr/src/pylon/.pylon/index.js .pylon/index.js
 COPY --from=prerelease /usr/src/pylon/package.json .
 
 # Copy Python dependencies
-COPY --from=python /opt/venv /opt/venv
-# Make sure we use the virtualenv
-ENV PATH="/opt/venv/bin:$PATH"
+COPY --from=python /usr/local/lib/python3.9/site-packages /usr/local/lib/python3.9/site-packages
 
 # Install python 3.9 in the release image
 RUN apt-get update && apt-get install -y --no-install-recommends \
