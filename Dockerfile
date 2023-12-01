@@ -55,13 +55,16 @@ COPY --from=prerelease /usr/src/pylon/.pylon/index.js .pylon/index.js
 COPY --from=prerelease /usr/src/pylon/package.json .
 
 # Copy Python dependencies
-
-COPY --from=python /usr/local/bin/python /usr/local/bin/python
-COPY --from=python /usr/local/lib/ /usr/local/lib/
-
 COPY --from=python /opt/venv /opt/venv
 # Make sure we use the virtualenv
 ENV PATH="/opt/venv/bin:$PATH"
+
+# Install python 3.9 in the release image
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    python3.9 \
+    python3-setuptools \
+    python3-wheel \
+    && rm -rf /var/lib/apt/lists/*
 
 # Run the app
 USER bun
