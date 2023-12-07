@@ -1,4 +1,4 @@
-perceval-quandela==0.9.3
+perceval-quandela @ git+https://github.com/schettn/perceval@main
 qiskit==0.45.0
 pyzx==0.7.3
 matplotlib==3.8.2
