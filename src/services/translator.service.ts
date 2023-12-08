@@ -39,7 +39,7 @@ class Translator {
           const translation = await this.translateQASM(base64Qasm);
           job.update({
             ...job.data,
-            ...translation,
+            result: translation,
           }); // Update the job with the translated SVG list
           resolve();
         }, 5000);
