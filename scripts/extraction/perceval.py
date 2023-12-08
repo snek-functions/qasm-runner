@@ -8,10 +8,10 @@ import perceval as pcvl
 
 # makes a ZX-graph "graph-like", such that it only consists of green spiders and hadamards
 def to_graph_like(g):
-    zx.spider_simp(g)
-    zx.to_gh(g)
-    zx.id_simp(g)
-    zx.spider_simp(g)
+    zx.spider_simp(g, quiet=True)
+    zx.to_gh(g, quiet=True)
+    zx.id_simp(g, quiet=True)
+    zx.spider_simp(g, quiet=True)
 
 # This class is to extract a Perceval Circuit out of a pyzx-graph.
 # The graph is described by a json-string, as defined by the pyzx-library.
