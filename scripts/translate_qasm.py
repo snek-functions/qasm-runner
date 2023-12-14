@@ -10,7 +10,7 @@ import matplotlib
 import json
 
 
-matplotlib.use('TkAgg')
+#matplotlib.use('TkAgg')
 
 
 def exit(data, warnings, errors):
@@ -34,14 +34,20 @@ if __name__ == '__main__':
             output["errors"].append(f'Error parsing QASM input: {e.message}')
             raise Exception("Exceptions")
 
-        g = zx.Circuit.from_qasm(qc.qasm()).to_graph()
-        g.auto_detect_io()
-        g.apply_state('0' * len(g.inputs()))
-        p = PercevalExtraction(g.copy().to_json())
+        try:
+            g = zx.Circuit.from_qasm(qc.qasm()).to_graph()
+            g.auto_detect_io()
+            g.apply_state('0' * len(g.inputs()))
+            p = PercevalExtraction(g.copy().to_json())
+        except Exception as e:
+            output["errors"].append(f'Error translating circuit to a measurement pattern: {e.message}')
+            raise Exception("Exceptions")
 
         graph_state = g.copy()
         to_graph_like(graph_state)
         graph_state.remove_vertices(graph_state.outputs())
+        for v in graph_state.vertices():
+            graph_state.set_phase(v,0)
 
         graph_state.normalize()
         plt = zx.draw_matplotlib(graph_state)
@@ -49,6 +55,19 @@ if __name__ == '__main__':
         plt.savefig(f, format="svg")
         output["data"].append({
             "name": "Resource State",
+            "mime_type": "image/svg+xml",
+            "value": base64.b64encode(f.getvalue()).decode()
+        })
+
+        o_graph_state = p.graph.copy()
+        o_graph_state.remove_vertices(o_graph_state.outputs())
+        for v in o_graph_state.vertices():
+            o_graph_state.set_phase(v,0)
+        plt = zx.draw_matplotlib(o_graph_state)
+        f = io.BytesIO()
+        plt.savefig(f, format="svg")
+        output["data"].append({
+            "name": "Optimized Resource State",
             "mime_type": "image/svg+xml",
             "value": base64.b64encode(f.getvalue()).decode()
         })
@@ -66,9 +85,9 @@ if __name__ == '__main__':
             "value": base64.b64encode(f.getvalue()).decode()
         })
 
-        if len(g.vertices()) > 20:
+        if len(g.vertices()) > 50:
             output["warnings"].append(
-                'MBQC scheme too large to print a photonic circuit')
+                'MBQC has mor than 50 vertices and is too large to print a photonic circuit')
             raise Exception("Warning")
 
         p.extract_clusters_from_graph_ghz_first()
@@ -85,4 +104,6 @@ if __name__ == '__main__':
     except Exception:
         pass
     finally:
+#        with open("sample.json", "w") as outfile:
+#           json.dump(output, outfile)
         print(json.dumps(output))

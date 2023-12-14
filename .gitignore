@@ -10,7 +10,8 @@ package-lock.json
 # Environment
 .env
 .env.*
-
+/conda/
+/.idea/
 # snek-function
 .pylon
 

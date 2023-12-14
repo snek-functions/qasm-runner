@@ -43,6 +43,7 @@ COPY ./scripts /usr/src/pylon/scripts
 
 # Install python 3.9 in the release image
 RUN apt-get update && apt-get install -y --no-install-recommends \
+	git \
     python3.9 \
     python3-pip \
     python3-setuptools \
