@@ -1,12 +1,21 @@
 import Queue, { Job } from "bull";
+import util from "util";
+const exec = util.promisify((await import("child_process")).exec);
+
 import { TaskNotFoundError } from "../errors/translator.errors";
 
 type JobData = {
   base64Qasm: string;
-  translation?: Array<{
-    svg: string;
-    name?: string;
-  }>;
+  result?: {
+    errors: string[];
+    warnings: string[];
+    translation: Array<{
+      mimeType: string;
+      value: string;
+      dataUri: string;
+      name?: string;
+    }>;
+  };
 };
 
 type Q = Queue.Queue<JobData>;
@@ -23,15 +32,14 @@ class Translator {
     this.queue.process(async (job) => {
       const base64Qasm = job.data.base64Qasm;
       // Simulating translation by decoding base64 and queuing the result as SVG list
-      const decodedQasm = Buffer.from(base64Qasm, "base64").toString("utf-8");
       // Simulating actual translation service by mocking it
       return new Promise<void>((resolve) => {
-        setTimeout(() => {
+        setTimeout(async () => {
           // Mocked translation service. Replace it with the actual implementation later
-          const translation = this.translateQASM(decodedQasm);
+          const translation = await this.translateQASM(base64Qasm);
           job.update({
             ...job.data,
-            translation,
+            result: translation,
           }); // Update the job with the translated SVG list
           resolve();
         }, 5000);
@@ -64,18 +72,39 @@ class Translator {
     return this.jobToTask(job);
   }
 
-  private translateQASM(decodedQasm: string) {
-    // Mocked translation service implementation
-    // Replace it with the actual translation service implementation later
+  private async translateQASM(base64Qasm: string) {
+    // Run ./scripts/translate_qasm.py
 
-    const imageURLs = [
-      {
-        name: "Circuit 1",
-        svg: "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiB2ZXJzaW9uPSIxLjEiIGlkPSJMYXllcl8xIiB4PSIwcHgiIHk9IjBweCIgdmlld0JveD0iMCAwIDEwMCAxMDAiIGVuYWJsZS1iYWNrZ3JvdW5kPSJuZXcgMCAwIDEwMCAxMDAiIHhtbDpzcGFjZT0icHJlc2VydmUiIGhlaWdodD0iMTAwcHgiIHdpZHRoPSIxMDBweCI+CjxnPgoJPHBhdGggZD0iTTI4LjEsMzYuNmM0LjYsMS45LDEyLjIsMS42LDIwLjksMS4xYzguOS0wLjQsMTktMC45LDI4LjksMC45YzYuMywxLjIsMTEuOSwzLjEsMTYuOCw2Yy0xLjUtMTIuMi03LjktMjMuNy0xOC42LTMxLjMgICBjLTQuOS0wLjItOS45LDAuMy0xNC44LDEuNEM0Ny44LDE3LjksMzYuMiwyNS42LDI4LjEsMzYuNnoiLz4KCTxwYXRoIGQ9Ik03MC4zLDkuOEM1Ny41LDMuNCw0Mi44LDMuNiwzMC41LDkuNWMtMyw2LTguNCwxOS42LTUuMywyNC45YzguNi0xMS43LDIwLjktMTkuOCwzNS4yLTIzLjFDNjMuNywxMC41LDY3LDEwLDcwLjMsOS44eiIvPgoJPHBhdGggZD0iTTE2LjUsNTEuM2MwLjYtMS43LDEuMi0zLjQsMi01LjFjLTMuOC0zLjQtNy41LTctMTEtMTAuOGMtMi4xLDYuMS0yLjgsMTIuNS0yLjMsMTguN0M5LjYsNTEuMSwxMy40LDUwLjIsMTYuNSw1MS4zeiIvPgoJPHBhdGggZD0iTTksMzEuNmMzLjUsMy45LDcuMiw3LjYsMTEuMSwxMS4xYzAuOC0xLjYsMS43LTMuMSwyLjYtNC42YzAuMS0wLjIsMC4zLTAuNCwwLjQtMC42Yy0yLjktMy4zLTMuMS05LjItMC42LTE3LjYgICBjMC44LTIuNywxLjgtNS4zLDIuNy03LjRjLTUuMiwzLjQtOS44LDgtMTMuMywxMy43QzEwLjgsMjcuOSw5LjgsMjkuNyw5LDMxLjZ6Ii8+Cgk8cGF0aCBkPSJNMTUuNCw1NC43Yy0yLjYtMS02LjEsMC43LTkuNywzLjRjMS4yLDYuNiwzLjksMTMsOCwxOC41QzEzLDY5LjMsMTMuNSw2MS44LDE1LjQsNTQuN3oiLz4KCTxwYXRoIGQ9Ik0zOS44LDU3LjZDNTQuMyw2Ni43LDcwLDczLDg2LjUsNzYuNGMwLjYtMC44LDEuMS0xLjYsMS43LTIuNWM0LjgtNy43LDctMTYuMyw2LjgtMjQuOGMtMTMuOC05LjMtMzEuMy04LjQtNDUuOC03LjcgICBjLTkuNSwwLjUtMTcuOCwwLjktMjMuMi0xLjdjLTAuMSwwLjEtMC4yLDAuMy0wLjMsMC40Yy0xLDEuNy0yLDMuNC0yLjksNS4xQzI4LjIsNDkuNywzMy44LDUzLjksMzkuOCw1Ny42eiIvPgoJPHBhdGggZD0iTTI2LjIsODguMmMzLjMsMiw2LjcsMy42LDEwLjIsNC43Yy0zLjUtNi4yLTYuMy0xMi42LTguOC0xOC41Yy0zLjEtNy4yLTUuOC0xMy41LTktMTcuMmMtMS45LDgtMiwxNi40LTAuMywyNC43ICAgQzIwLjYsODQuMiwyMy4yLDg2LjMsMjYuMiw4OC4yeiIvPgoJPHBhdGggZD0iTTMwLjksNzNjMi45LDYuOCw2LjEsMTQuNCwxMC41LDIxLjJjMTUuNiwzLDMyLTIuMyw0Mi42LTE0LjZDNjcuNyw3Niw1Mi4yLDY5LjYsMzcuOSw2MC43QzMyLDU3LDI2LjUsNTMsMjEuMyw0OC42ICAgYy0wLjYsMS41LTEuMiwzLTEuNyw0LjZDMjQuMSw1Ny4xLDI3LjMsNjQuNSwzMC45LDczeiIvPgo8L2c+Cjwvc3ZnPg==",
-      },
-    ];
+    const { stdout, stderr } = await exec(
+      `python3 ./scripts/translate_qasm.py ${base64Qasm}`
+    );
 
-    return imageURLs;
+    if (stderr) {
+      throw new Error(stderr);
+    }
+
+    const result = JSON.parse(stdout) as {
+      errors: string[];
+      warnings: string[];
+      data: {
+        name: string;
+        mime_type: string;
+        value: string;
+      }[];
+    };
+
+    const translation = result.data.map((data) => ({
+      mimeType: data.mime_type,
+      value: data.value,
+      dataUri: `data:${data.mime_type};base64,${data.value}`,
+      name: data.name,
+    }));
+
+    return {
+      errors: result.errors,
+      warnings: result.warnings,
+      translation,
+    };
   }
 }
 
