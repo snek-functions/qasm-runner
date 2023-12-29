@@ -30,20 +30,17 @@ class Translator {
     );
 
     this.queue.process(async (job) => {
-      const base64Qasm = job.data.base64Qasm;
-      // Simulating translation by decoding base64 and queuing the result as SVG list
-      // Simulating actual translation service by mocking it
-      return new Promise<void>((resolve) => {
-        setTimeout(async () => {
-          // Mocked translation service. Replace it with the actual implementation later
-          const translation = await this.translateQASM(base64Qasm);
-          job.update({
-            ...job.data,
-            result: translation,
-          }); // Update the job with the translated SVG list
-          resolve();
-        }, 5000);
-      });
+
+      try{
+        const base64Qasm = job.data.base64Qasm;
+        return await this.translateQASM(base64Qasm);  
+      } catch (error) {
+        console.error('Error processing job:', error.message);
+
+        throw error
+      }
+
+       
     });
   }
 
