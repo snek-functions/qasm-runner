@@ -33,7 +33,11 @@ class Translator {
 
       try{
         const base64Qasm = job.data.base64Qasm;
-        return await this.translateQASM(base64Qasm);  
+        const data = await this.translateQASM(base64Qasm);
+
+        job.update({...job.data, result: data})
+
+        return data
       } catch (error) {
         console.error('Error processing job:', error.message);
 
