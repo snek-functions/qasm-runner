@@ -10,7 +10,7 @@ import matplotlib
 import json
 
 
-#matplotlib.use('TkAgg')
+# matplotlib.use('TkAgg')
 
 class QASMRunnerException(Exception):
     """Raised during parsing the QASM Input
